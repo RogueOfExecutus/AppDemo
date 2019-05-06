@@ -9,6 +9,7 @@
 #endif
 
 #include "resource.h"		// 主符号
+#include "log4cplus/log4cplus.h"
 
 
 // CApplicationApp:
@@ -27,6 +28,8 @@ public:
 // 实现
 
 	DECLARE_MESSAGE_MAP()
+private:
+	log4cplus::Initializer initializer;
 };
 
 extern CApplicationApp theApp;
