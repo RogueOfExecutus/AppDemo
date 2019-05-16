@@ -606,11 +606,11 @@ void CApplicationDlg::workPlcThread()
 	while (runFlag)
 	{
 		unique_lock<mutex> lock(mtxPlc);
-		if (trigFlag)
+		if (trigFlagOne)
 		{
 			//复位
-			plcComm.put_Output(COleVariant(resetTrigger));
-			trigFlag = false;
+			plcComm.put_Output(COleVariant(resetTriggerOne));
+			trigFlagOne = false;
 		}
 		else if (sendFlag)
 		{

@@ -60,11 +60,11 @@ private:
 	bool workOneFlag;
 	void workPlcThread();
 	bool workPlcFlag;
-	bool trigFlag;
+	bool trigFlagOne;
 	bool sendFlag;
 	char returnMsg[256];
 	const CString checkTrigger = _T("");
-	const CString resetTrigger = _T("");
+	const CString resetTriggerOne = _T("");
 	const CString scanTrigger = _T("\x16\x54\x0D");
 	const CString scanCloser = _T("\x16\x55\x0D");
 	bool plcCRFlag;
