@@ -290,10 +290,10 @@ void CApplicationDlg::OnCommScanner()
 		{
 			cvScan.notify_all();
 			if (isCR == 1)
-				scanCRFlag = true;
+				scanCRFlag = false;
 		}
 		else
-			scanCRFlag = false;
+			scanCRFlag = true;
 
 		LOG4CPLUS_INFO(Logger::getInstance(LOG4CPLUS_TEXT("serial")),
 			LOG4CPLUS_STRING_TO_TSTRING("获取条码：" + string(rxdata)));
@@ -641,4 +641,13 @@ void CApplicationDlg::workPlcThread()
 	LOG4CPLUS_INFO(Logger::getInstance(LOG4CPLUS_TEXT("serial")),
 		LOG4CPLUS_TEXT("PLC线程停止。。"));
 	workPlcFlag = false;
+}
+
+void CApplicationDlg::Add2SendMSG(CString msg)
+{
+	// TODO: 在此处添加实现代码.
+	unique_lock<mutex> lockMsg(mtxPLCMsg);
+	msgs.push_back(msg);
+	sendFlag = true;
+	lockMsg.unlock();
 }

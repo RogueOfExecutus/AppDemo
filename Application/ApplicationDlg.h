@@ -58,13 +58,18 @@ private:
 	bool runFlag;
 	void workOneThread();
 	bool workOneFlag;
+	std::string workOneValue;//工位寄存器
 	void workPlcThread();
 	bool workPlcFlag;
 	bool trigFlagOne;
+	void Add2SendMSG(CString msg);
 	bool sendFlag;
 	char returnMsg[256];
+	std::vector<CString> msgs;
 	const CString checkTrigger = _T("");
 	const CString resetTriggerOne = _T("");
+	const CString sendOKOne = _T("");
+	const CString sendNGOne = _T("");
 	const CString scanTrigger = _T("\x16\x54\x0D");
 	const CString scanCloser = _T("\x16\x55\x0D");
 	bool plcCRFlag;
@@ -75,6 +80,8 @@ private:
 	std::condition_variable cvPlc;
 	std::mutex mtxScan;
 	std::condition_variable cvScan;
+	std::mutex mtxPLCMsg;
+	std::condition_variable cvPLCMsg;
 	const CString iniPath = _T(".\\parameter.ini");
 	CMSComm plcComm;
 	CMSComm scanComm;
