@@ -289,8 +289,7 @@ void CApplicationDlg::OnCommScanner()
 		if (isCR != 1 || rxdata[len - 1] == '\r')
 		{
 			cvScan.notify_all();
-			if (isCR == 1)
-				scanCRFlag = false;
+			scanCRFlag = false;
 		}
 		else
 			scanCRFlag = true;
@@ -329,9 +328,9 @@ void CApplicationDlg::initAll()
 	checkFile("log");
 	initConfig();
 	initSerial();
-	initLog4cplus("work", ".\\log\\work.log");
-	initLog4cplus("serial", ".\\log\\serial.log");
-	initLog4cplus("mes", ".\\log\\mes.log");
+	initLog4cplus(workLog, "work", ".\\log\\work.log");
+	initLog4cplus(serialLog, "serial", ".\\log\\serial.log");
+	initLog4cplus(mesLog, "mes", ".\\log\\mes.log");
 }
 
 
@@ -455,7 +454,7 @@ int CApplicationDlg::GetPCPort(vector<CString> &comms)
 }
 
 
-void CApplicationDlg::initLog4cplus(string name, string path)
+void CApplicationDlg::initLog4cplus(Logger &logger, string name, string path)
 {
 	// TODO: 在此处添加实现代码.
 	SharedAppenderPtr fileAppender(new RollingFileAppender(
