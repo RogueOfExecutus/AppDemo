@@ -614,10 +614,33 @@ void CApplicationDlg::workPlcThread()
 		else if (sendFlag)
 		{
 			//发送特殊数据
-			plcComm.put_Output(COleVariant(getXOR(returnMsg)));
+			CString msg = _T("");
+			unique_lock<mutex> lockMsg(mtxPLCMsg);
+			if (msgs.empty())
+			{
+				sendFlag = false;
+			}
+			else
+			{
+				msg = msgs[0];
+				msgs.erase(msgs.begin());
+				if (msgs.empty())
+					sendFlag = false;
+			}
+			lockMsg.unlock();
+			//sendFlag = false;
+			if (msg == _T(""))
+			{
+				LOG4CPLUS_INFO(Logger::getInstance(LOG4CPLUS_TEXT("serial")),
+					LOG4CPLUS_TEXT("发送PLC数据为空"));
+				continue;
+			}
+			plcComm.put_Output(COleVariant(msg));
+
+			char *umsg = UnicodeToUtf8(msg);
 			LOG4CPLUS_INFO(Logger::getInstance(LOG4CPLUS_TEXT("serial")),
-				LOG4CPLUS_STRING_TO_TSTRING("发送PLC数据：" + string(returnMsg)));
-			sendFlag = false;
+				LOG4CPLUS_STRING_TO_TSTRING("发送PLC数据：" + string(umsg)));
+			delete[] umsg;
 		}
 		else
 		{
