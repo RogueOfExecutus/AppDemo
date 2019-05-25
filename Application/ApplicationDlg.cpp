@@ -261,8 +261,7 @@ void CApplicationDlg::OnCommPlc()
 			//处理
 		}
 
-		LOG4CPLUS_DEBUG(Logger::getInstance(LOG4CPLUS_TEXT("serial")),
-			LOG4CPLUS_STRING_TO_TSTRING("获取PLC回复数据：" + string(rxdata)));
+		LOG4CPLUS_DEBUG(serialLog, LOG4CPLUS_STRING_TO_TSTRING("获取PLC回复数据：" + string(rxdata)));
 		delete[] rxdata;
 	}
 }
@@ -294,8 +293,7 @@ void CApplicationDlg::OnCommScanner()
 		else
 			scanCRFlag = true;
 
-		LOG4CPLUS_INFO(Logger::getInstance(LOG4CPLUS_TEXT("serial")),
-			LOG4CPLUS_STRING_TO_TSTRING("获取条码：" + string(rxdata)));
+		LOG4CPLUS_INFO(serialLog, LOG4CPLUS_STRING_TO_TSTRING("获取条码：" + string(rxdata)));
 		delete[] rxdata;
 	}
 }
@@ -468,7 +466,7 @@ void CApplicationDlg::initLog4cplus(Logger &logger, string name, string path)
 	tstring pattern = LOG4CPLUS_TEXT("%D{%y/%m/%d %H:%M:%S,%Q} [%t] %-5p %c - %m [%l]%n");
 	fileAppender->setLayout(unique_ptr<Layout>(new PatternLayout(pattern)));
 
-	Logger logger = Logger::getInstance(LOG4CPLUS_STRING_TO_TSTRING(name));
+	logger = Logger::getInstance(LOG4CPLUS_STRING_TO_TSTRING(name));
 	logger.setLogLevel(logLevel);
 
 	logger.addAppender(fileAppender);
@@ -528,14 +526,12 @@ bool CApplicationDlg::OpenComm(CMSComm &comm, LPCTSTR setter, CString portName)
 		try
 		{
 			comm.put_PortOpen(TRUE);//打开串口
-			LOG4CPLUS_INFO(Logger::getInstance(LOG4CPLUS_TEXT("serial")),
-				LOG4CPLUS_STRING_TO_TSTRING("打开串口 COM" + to_string(portNum)));
+			LOG4CPLUS_INFO(serialLog, LOG4CPLUS_STRING_TO_TSTRING("打开串口 COM" + to_string(portNum)));
 			return true;
 		}
 		catch (...)
 		{
-			LOG4CPLUS_INFO(Logger::getInstance(LOG4CPLUS_TEXT("serial")),
-				LOG4CPLUS_STRING_TO_TSTRING("打开串口 COM" + to_string(portNum) + "失败"));
+			LOG4CPLUS_INFO(serialLog, LOG4CPLUS_STRING_TO_TSTRING("打开串口 COM" + to_string(portNum) + "失败"));
 			return false;
 		}
 	}
@@ -561,8 +557,7 @@ void CApplicationDlg::workOneThread()
 {
 	// TODO: 在此处添加实现代码.
 	workOneFlag = true;
-	LOG4CPLUS_INFO(Logger::getInstance(LOG4CPLUS_TEXT("work")),
-		LOG4CPLUS_TEXT("工作线程启动。。"));
+	LOG4CPLUS_INFO(workLog, LOG4CPLUS_TEXT("工作线程启动。。"));
 	while (runFlag)
 	{
 		unique_lock<mutex> lock(mtx1);
@@ -591,16 +586,14 @@ void CApplicationDlg::workOneThread()
 
 		}
 	}
-	LOG4CPLUS_INFO(Logger::getInstance(LOG4CPLUS_TEXT("work")),
-		LOG4CPLUS_TEXT("工作线程停止。。"));
+	LOG4CPLUS_INFO(workLog, LOG4CPLUS_TEXT("工作线程停止。。"));
 	workOneFlag = false;
 }
 
 void CApplicationDlg::workPlcThread()
 {
 	workPlcFlag = true;
-	LOG4CPLUS_INFO(Logger::getInstance(LOG4CPLUS_TEXT("serial")),
-		LOG4CPLUS_TEXT("PLC线程启动。。"));
+	LOG4CPLUS_INFO(serialLog, LOG4CPLUS_TEXT("PLC线程启动。。"));
 	int timeoutTimes = 0;
 	while (runFlag)
 	{
@@ -631,15 +624,13 @@ void CApplicationDlg::workPlcThread()
 			//sendFlag = false;
 			if (msg == _T(""))
 			{
-				LOG4CPLUS_INFO(Logger::getInstance(LOG4CPLUS_TEXT("serial")),
-					LOG4CPLUS_TEXT("发送PLC数据为空"));
+				LOG4CPLUS_INFO(serialLog, LOG4CPLUS_TEXT("发送PLC数据为空"));
 				continue;
 			}
 			plcComm.put_Output(COleVariant(msg));
 
 			char *umsg = UnicodeToUtf8(msg);
-			LOG4CPLUS_INFO(Logger::getInstance(LOG4CPLUS_TEXT("serial")),
-				LOG4CPLUS_STRING_TO_TSTRING("发送PLC数据：" + string(umsg)));
+			LOG4CPLUS_INFO(serialLog, LOG4CPLUS_STRING_TO_TSTRING("发送PLC数据：" + string(umsg)));
 			delete[] umsg;
 		}
 		else
@@ -660,8 +651,7 @@ void CApplicationDlg::workPlcThread()
 			timeoutTimes = 0;
 		lock.unlock();
 	}
-	LOG4CPLUS_INFO(Logger::getInstance(LOG4CPLUS_TEXT("serial")),
-		LOG4CPLUS_TEXT("PLC线程停止。。"));
+	LOG4CPLUS_INFO(serialLog, LOG4CPLUS_TEXT("PLC线程停止。。"));
 	workPlcFlag = false;
 }
 
