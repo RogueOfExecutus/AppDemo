@@ -97,6 +97,7 @@ private:
 	char * UnicodeToUtf8(const wchar_t * unicode);
 	CString UTF82WCS(const char * szU8, size_t len);
 	bool OpenComm(CMSComm & comm, LPCTSTR setter, CString portName);
+	void closeComm();
 	CString getXOR(char * data);
 	CComboBox plcList;
 	CComboBox scannerList;

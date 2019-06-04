@@ -204,6 +204,7 @@ void CApplicationDlg::OnBnClickedOk()
 	else
 	{
 		runFlag = false;
+		closeComm();
 		cv1.notify_all();
 		BtOK.SetWindowText(_T("启动"));
 	}
@@ -219,6 +220,7 @@ void CApplicationDlg::OnBnClickedCancel()
 	{
 		if (MessageBox(_T("确定要退出程序吗？"), _T("退出提示！"), MB_ICONINFORMATION | MB_YESNO) != IDYES)
 			return;
+		closeComm();
 		CDialogEx::OnCancel();
 	}
 }
@@ -536,6 +538,14 @@ bool CApplicationDlg::OpenComm(CMSComm &comm, LPCTSTR setter, CString portName)
 		}
 	}
 	return false;
+}
+
+void CApplicationDlg::closeComm()
+{
+	if (plcComm.get_PortOpen())
+		plcComm.put_PortOpen(FALSE);
+	if (scanComm.get_PortOpen())
+		scanComm.put_PortOpen(FALSE);
 }
 
 
