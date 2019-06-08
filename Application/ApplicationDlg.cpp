@@ -15,6 +15,8 @@
 using namespace std;
 using namespace log4cplus;
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
+bool plcTimeout;
+bool scanTimeout;
 
 class CAboutDlg : public CDialogEx
 {
@@ -259,6 +261,7 @@ void CApplicationDlg::OnCommPlc()
 		if (!(plcCRFlag = rxdata[len - 1] != '\r'))
 		{
 			//唤醒PLC线程继续发送
+			plcTimeout = true;
 			cvPlc.notify_all();
 			//处理
 		}
@@ -289,6 +292,7 @@ void CApplicationDlg::OnCommScanner()
 		scanData += string(rxdata);
 		if (isCR != 1 || rxdata[len - 1] == '\r')
 		{
+			scanTimeout = true;
 			cvScan.notify_all();
 			scanCRFlag = false;
 		}
@@ -579,21 +583,21 @@ void CApplicationDlg::workOneThread()
 		//工位1触发，先扫码，情况不同再具体修改
 		unique_lock<mutex> lockScan(mtxScan);
 		scanComm.put_Output(COleVariant(scanTrigger));
-		cv_status result = cvScan.wait_for(lockScan, chrono::milliseconds(1000));
+		scanTimeout = false;
+		bool result = cvScan.wait_for(lockScan, chrono::milliseconds(1000), [] {return scanTimeout; });
 		scanComm.put_Output(COleVariant(scanCloser));
 		lockScan.unlock();
 		if (!runFlag)
 			break;
 
-		if (cv_status::timeout == result)
+		if (result)
 		{
-			//超时
-			ShowMsg(_T("扫码超时异常，请检查"));
 
 		}
 		else
 		{
-
+			//超时
+			ShowMsg(_T("扫码超时异常，请检查"));
 		}
 	}
 	LOG4CPLUS_INFO(workLog, LOG4CPLUS_TEXT("工作线程停止。。"));
@@ -649,16 +653,19 @@ void CApplicationDlg::workPlcThread()
 			plcComm.put_Output(COleVariant(checkTrigger));
 		}
 		//等待PLC回复
-		if (cv_status::timeout == cvPlc.wait_for(lock, chrono::milliseconds(1000)))
+		plcTimeout = false;
+		if (cvPlc.wait_for(lock, chrono::milliseconds(1000), [] {return plcTimeout; }))
+			timeoutTimes = 0;
+		else
 		{
 			timeoutTimes++;
 			if (timeoutTimes >= 3)
 			{
-				ShowMsg(_T("PLC连续3次以上回复超时，请检查通信！！"));
+				CString temp;
+				temp.Format(_T("PLC连续%d次以上回复超时，请检查通信！！"), timeoutTimes);
+				ShowMsg(temp);
 			}
 		}
-		else
-			timeoutTimes = 0;
 		lock.unlock();
 	}
 	LOG4CPLUS_INFO(serialLog, LOG4CPLUS_TEXT("PLC线程停止。。"));
