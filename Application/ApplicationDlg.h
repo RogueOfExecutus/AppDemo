@@ -93,7 +93,7 @@ private:
 	void readConfig();
 	void initSerial();
 	int GetPCPort(std::vector<CString>& comms);
-	void initLog4cplus(log4cplus::Logger &logger, std::string name, std::string path);
+	void initLog4cplus(std::string name, std::string path);
 	char * UnicodeToUtf8(const wchar_t * unicode);
 	CString UTF82WCS(const char * szU8, size_t len);
 	bool OpenComm(CMSComm & comm, LPCTSTR setter, CString portName);
@@ -102,7 +102,4 @@ private:
 	CComboBox plcList;
 	CComboBox scannerList;
 	CButton BtOK;
-	log4cplus::Logger workLog;
-	log4cplus::Logger serialLog;
-	log4cplus::Logger mesLog;
 };
