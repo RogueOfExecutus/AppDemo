@@ -102,4 +102,5 @@ private:
 	CComboBox plcList;
 	CComboBox scannerList;
 	CButton BtOK;
+	void enableControl(BOOL isAble = FALSE);
 };

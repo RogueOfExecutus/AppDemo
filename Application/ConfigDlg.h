@@ -26,8 +26,6 @@ public:
 
 private:
 	const CString parameter = _T(".\\parameter.ini");
-	int logLevel;
-	int isCR;
 	CComboBox logList;
 	CButton checkIsCR;
 };

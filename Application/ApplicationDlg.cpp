@@ -198,6 +198,7 @@ void CApplicationDlg::OnBnClickedOk()
 			return;
 		}
 		runFlag = true;
+		enableControl();
 		BtOK.SetWindowText(_T("停止"));
 		std::thread th1(&CApplicationDlg::workOneThread, this);
 		th1.detach();
@@ -209,6 +210,7 @@ void CApplicationDlg::OnBnClickedOk()
 		runFlag = false;
 		closeComm();
 		cv1.notify_all();
+		enableControl(TRUE);
 		BtOK.SetWindowText(_T("启动"));
 	}
 }
@@ -232,9 +234,14 @@ void CApplicationDlg::OnBnClickedCancel()
 void CApplicationDlg::OnBnClickedButtonConfig()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	ConfigDlg dlg;
-	dlg.DoModal();
-	readConfig();
+	if (runFlag)
+		ShowMsg(_T("软件正在运行中，请停止运行后再打开。。。"));
+	else
+	{
+		ConfigDlg dlg;
+		dlg.DoModal();
+		readConfig();
+	}
 }
 BEGIN_EVENTSINK_MAP(CApplicationDlg, CDialogEx)
 	ON_EVENT(CApplicationDlg, IDC_MSCOMM_PLC, 1, CApplicationDlg::OnCommPlc, VTS_NONE)
@@ -262,12 +269,12 @@ void CApplicationDlg::OnCommPlc()
 		if (!(plcCRFlag = rxdata[len - 1] != '\r'))
 		{
 			//唤醒PLC线程继续发送
+			//处理
+			LOG4CPLUS_DEBUG(GET_LOGGER("serial"), LOG4CPLUS_STRING_TO_TSTRING("获取PLC回复数据：" + plcData));
 			plcTimeout = true;
 			cvPlc.notify_all();
-			//处理
 		}
 
-		LOG4CPLUS_DEBUG(GET_LOGGER("serial"), LOG4CPLUS_STRING_TO_TSTRING("获取PLC回复数据：" + string(rxdata)));
 		delete[] rxdata;
 	}
 }
@@ -309,18 +316,19 @@ void CApplicationDlg::OnCommScanner()
 void CApplicationDlg::ShowMsg(CString msg)
 {
 	// TODO: 在此处添加实现代码.
-	if (msgBox.GetLineCount() > 50)
+	if (msgBox.GetLineCount() > 100)
 	{
 		CString allMSG;
 		msgBox.GetWindowText(allMSG);
-		int firstLineLen = allMSG.Find(_T("\r\n"), 0);
+		int halfIndex = msgBox.GetWindowTextLength() / 2;
+		int firstLineLen = allMSG.Find(_T("\r\n"), halfIndex);
 		msgBox.SetSel(0, firstLineLen + 2);
 		msgBox.ReplaceSel(_T(""));
 	}
 	CTime time1 = CTime::GetCurrentTime();
 	CString cstrTime = time1.Format("[%Y/%m/%d %H:%M:%S] ");
 
-	int len = msgBox.GetWindowTextLengthW();
+	int len = msgBox.GetWindowTextLength();
 	msgBox.SetSel(len, len);
 	msgBox.ReplaceSel(cstrTime + msg + _T("\r\n"));
 
@@ -566,6 +574,12 @@ CString CApplicationDlg::getXOR(char *data)
 	CString XOR;
 	XOR.Format(_T("%02X"), xor);
 	return CString(data) + XOR + _T("*\r");
+}
+
+void CApplicationDlg::enableControl(BOOL isAble)
+{
+	plcList.EnableWindow(isAble);
+	scannerList.EnableWindow(isAble);
 }
 
 void CApplicationDlg::workOneThread()
