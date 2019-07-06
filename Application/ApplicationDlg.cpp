@@ -303,11 +303,12 @@ void CApplicationDlg::OnCommScanner()
 			scanTimeout = true;
 			cvScan.notify_all();
 			scanCRFlag = false;
+
+			LOG4CPLUS_INFO(GET_LOGGER("serial"), LOG4CPLUS_STRING_TO_TSTRING("获取条码：" + scanData));
 		}
 		else
 			scanCRFlag = true;
 
-		LOG4CPLUS_INFO(GET_LOGGER("serial"), LOG4CPLUS_STRING_TO_TSTRING("获取条码：" + string(rxdata)));
 		delete[] rxdata;
 	}
 }
@@ -541,12 +542,12 @@ bool CApplicationDlg::OpenComm(CMSComm &comm, LPCTSTR setter, CString portName)
 		try
 		{
 			comm.put_PortOpen(TRUE);//打开串口
-			LOG4CPLUS_INFO(GET_LOGGER("serial"), LOG4CPLUS_STRING_TO_TSTRING("打开串口 COM" + to_string(portNum)));
+			LOG4CPLUS_INFO(GET_LOGGER("serial"), _T("打开串口 COM") + to_wstring(portNum));
 			return true;
 		}
 		catch (...)
 		{
-			LOG4CPLUS_INFO(GET_LOGGER("serial"), LOG4CPLUS_STRING_TO_TSTRING("打开串口 COM" + to_string(portNum) + "失败"));
+			LOG4CPLUS_INFO(GET_LOGGER("serial"), _T("打开串口 COM") + to_wstring(portNum) + _T("失败"));
 			return false;
 		}
 	}
@@ -586,7 +587,7 @@ void CApplicationDlg::workOneThread()
 {
 	// TODO: 在此处添加实现代码.
 	workOneFlag = true;
-	LOG4CPLUS_INFO(GET_LOGGER("work"), LOG4CPLUS_TEXT("工作线程启动。。"));
+	LOG4CPLUS_INFO(GET_LOGGER("work"), _T("工作线程启动。。"));
 	while (runFlag)
 	{
 		unique_lock<mutex> lock(mtx1);
@@ -615,14 +616,14 @@ void CApplicationDlg::workOneThread()
 			ShowMsg(_T("扫码超时异常，请检查"));
 		}
 	}
-	LOG4CPLUS_INFO(GET_LOGGER("work"), LOG4CPLUS_TEXT("工作线程停止。。"));
+	LOG4CPLUS_INFO(GET_LOGGER("work"), _T("工作线程停止。。"));
 	workOneFlag = false;
 }
 
 void CApplicationDlg::workPlcThread()
 {
 	workPlcFlag = true;
-	LOG4CPLUS_INFO(GET_LOGGER("serial"), LOG4CPLUS_TEXT("PLC线程启动。。"));
+	LOG4CPLUS_INFO(GET_LOGGER("serial"), _T("PLC线程启动。。"));
 	int timeoutTimes = 0;
 	while (runFlag)
 	{
@@ -653,14 +654,13 @@ void CApplicationDlg::workPlcThread()
 			//sendFlag = false;
 			if (msg == _T(""))
 			{
-				LOG4CPLUS_INFO(GET_LOGGER("serial"), LOG4CPLUS_TEXT("发送PLC数据为空"));
+				LOG4CPLUS_INFO(GET_LOGGER("serial"), _T("发送PLC数据为空"));
 				continue;
 			}
 			plcComm.put_Output(COleVariant(msg));
 
-			char *umsg = UnicodeToUtf8(msg);
-			LOG4CPLUS_INFO(GET_LOGGER("serial"), LOG4CPLUS_STRING_TO_TSTRING("发送PLC数据：" + string(umsg)));
-			delete[] umsg;
+			if(msg.GetLength() != 17)
+				LOG4CPLUS_INFO(GET_LOGGER("serial"), (_T("发送PLC数据：") + msg).GetString());
 		}
 		else
 		{
@@ -683,7 +683,7 @@ void CApplicationDlg::workPlcThread()
 		}
 		lock.unlock();
 	}
-	LOG4CPLUS_INFO(GET_LOGGER("serial"), LOG4CPLUS_TEXT("PLC线程停止。。"));
+	LOG4CPLUS_INFO(GET_LOGGER("serial"), _T("PLC线程停止。。"));
 	workPlcFlag = false;
 }
 
