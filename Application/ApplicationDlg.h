@@ -98,9 +98,10 @@ private:
 	CString UTF82WCS(const char * szU8, size_t len);
 	bool OpenComm(CMSComm & comm, LPCTSTR setter, CString portName);
 	void closeComm();
-	CString getXOR(char * data);
+	CString getXOR(const char * data);
 	CComboBox plcList;
 	CComboBox scannerList;
 	CButton BtOK;
 	void enableControl(BOOL isAble = FALSE);
+	bool appFlag;
 };

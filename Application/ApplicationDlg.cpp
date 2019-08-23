@@ -113,6 +113,7 @@ BOOL CApplicationDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
+	appFlag = true;
 	initAll();
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
@@ -225,6 +226,7 @@ void CApplicationDlg::OnBnClickedCancel()
 	{
 		if (MessageBox(_T("确定要退出程序吗？"), _T("退出提示！"), MB_ICONINFORMATION | MB_YESNO) != IDYES)
 			return;
+		appFlag = false;
 		closeComm();
 		CDialogEx::OnCancel();
 	}
@@ -252,12 +254,12 @@ END_EVENTSINK_MAP()
 void CApplicationDlg::OnCommPlc()
 {
 	// TODO: 在此处添加消息处理程序代码
-	if (!plcCRFlag)
-		plcData.clear();
-	COleSafeArray safearray_inp;
-	long len, k;
 	if (plcComm.get_CommEvent() == 2) //值为 2 表示接收缓冲区内有字符
 	{
+		if (!plcCRFlag)
+			plcData.clear();
+		COleSafeArray safearray_inp;
+		long len, k;
 		safearray_inp = plcComm.get_Input();; ///变量转换
 		len = safearray_inp.GetOneDimSize(); //得到有效的数据长度
 		char *rxdata; //设置 BYTE 数组
@@ -283,13 +285,13 @@ void CApplicationDlg::OnCommPlc()
 void CApplicationDlg::OnCommScanner()
 {
 	// TODO: 在此处添加消息处理程序代码
-	if (!scanCRFlag)
-		scanData.clear();
-	COleSafeArray safearray_inp;
-	long len, k;
 	if (scanComm.get_CommEvent() == 2) //值为 2 表示接收缓冲区内有字符
 	{
-		safearray_inp = scanComm.get_Input();; ///变量转换
+		if (!scanCRFlag)
+			scanData.clear();
+		COleSafeArray safearray_inp;
+		long len, k;
+		safearray_inp = scanComm.get_Input(); //变量转换
 		len = safearray_inp.GetOneDimSize(); //得到有效的数据长度
 		char *rxdata; //设置 BYTE 数组
 		rxdata = new char[len + 1];
@@ -317,6 +319,8 @@ void CApplicationDlg::OnCommScanner()
 void CApplicationDlg::ShowMsg(CString msg)
 {
 	// TODO: 在此处添加实现代码.
+	if (!appFlag)
+		return;
 	if (msgBox.GetLineCount() > 100)
 	{
 		CString allMSG;
@@ -494,7 +498,6 @@ char *CApplicationDlg::UnicodeToUtf8(const wchar_t *unicode)
 	int len;
 	len = WideCharToMultiByte(CP_UTF8, 0, unicode, -1, NULL, 0, NULL, NULL);
 	char *szUtf8 = new char[len + 1];
-	//memset(szUtf8, 0, len + 1);
 	WideCharToMultiByte(CP_UTF8, 0, unicode, -1, szUtf8, len, NULL, NULL);
 	szUtf8[len] = '\0';
 	return szUtf8;
@@ -505,21 +508,15 @@ CString CApplicationDlg::UTF82WCS(const char *szU8, size_t len)
 {
 	//预转换，得到所需空间的大小;
 	int wcsLen = MultiByteToWideChar(CP_UTF8, NULL, szU8, len, NULL, 0);
-
-	//分配空间要给'\0'留个空间，MultiByteToWideChar不会给'\0'空间
 	wchar_t* wszString = new wchar_t[wcsLen + 1];
-
 	//转换
 	MultiByteToWideChar(CP_UTF8, NULL, szU8, len, wszString, wcsLen);
-
 	//最后加上'\0'
 	wszString[wcsLen] = '\0';
 
 	CString unicodeString(wszString);
-
 	delete[] wszString;
 	wszString = NULL;
-
 	return unicodeString;
 }
 
@@ -563,7 +560,7 @@ void CApplicationDlg::closeComm()
 }
 
 
-CString CApplicationDlg::getXOR(char *data)
+CString CApplicationDlg::getXOR(const char *data)
 {
 	// TODO: 在此处添加实现代码.
 	int len = strlen(data);
